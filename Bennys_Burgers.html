@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>BENNY'S BURGERS</title>
+<style>
+:root{--gold:#ffbd4a;--red:#e84b3c;--cream:#fff3dc;--ink:#30251f;--green:#4e9b65}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#201b19;color:var(--cream);overflow:hidden}
+button{font:inherit;border:0;cursor:pointer;touch-action:manipulation}
+#game{height:100dvh;display:flex;flex-direction:column;background:linear-gradient(#8bc6db 0 36%,#e9b879 36% 100%);position:relative}
+.top{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#30251fee;z-index:3}
+.brand{font-weight:1000;letter-spacing:1px;color:var(--gold);font-size:clamp(16px,4vw,23px)}.stats{display:flex;gap:12px;font-weight:800;font-size:14px}
+.scene{flex:1;position:relative;overflow:hidden;perspective:850px}
+.backwall{position:absolute;inset:0 0 32% 0;background:linear-gradient(90deg,#e8c79c,#f4dfbd 50%,#e8c79c);border-bottom:12px solid #9a6244}
+.window{position:absolute;left:7%;top:12%;width:25%;height:36%;border:9px solid #9a6244;background:linear-gradient(#8ed1e8 0 65%,#7cae6b 65%);box-shadow:inset 0 0 0 3px #fff8}
+.menu-board{position:absolute;right:7%;top:10%;width:32%;height:30%;background:#28382d;border:7px solid #a46b40;border-radius:8px;padding:8px;text-align:center;color:#ffe5a8;font-weight:800;font-size:clamp(10px,2.5vw,15px)}
+.menu-board small{display:block;color:#fff;font-weight:500;margin-top:5px}
+.counter{position:absolute;bottom:0;left:-5%;width:110%;height:43%;background:linear-gradient(#b87a49 0 12%,#74452f 12% 100%);clip-path:polygon(8% 0,92% 0,100% 100%,0 100%);border-top:12px solid #f0c18a}
+.countertop{position:absolute;bottom:38%;left:7%;width:86%;height:10%;background:#f6d6a7;transform:rotateX(10deg);border-radius:8px;box-shadow:0 8px 0 #9d633e}
+.cashier{position:absolute;bottom:35%;left:50%;transform:translateX(-50%);font-size:clamp(66px,16vw,115px);filter:drop-shadow(0 8px 3px #543);z-index:2}
+.orderbubble{position:absolute;top:5%;left:50%;transform:translateX(-50%);background:#fff8e9;color:#35271f;padding:10px 15px;border-radius:16px;font-weight:850;box-shadow:0 5px 0 #b8895c;z-index:2;text-align:center;min-width:210px}
+.orderbubble:after{content:"";position:absolute;bottom:-10px;left:50%;border-width:10px 10px 0;border-style:solid;border-color:#fff8e9 transparent transparent}
+.counter-ui{position:absolute;bottom:0;left:0;right:0;z-index:4;background:#30251ff2;padding:10px 10px calc(12px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;box-shadow:0 -8px 25px #3c241e55}
+.row{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
+.food{background:#fff0d5;color:#382820;border-radius:13px;padding:10px 12px;min-width:68px;font-weight:850;box-shadow:0 4px 0 #c28b58;font-size:14px}
+.food:active{transform:translateY(3px);box-shadow:0 1px 0 #c28b58}.food.selected{outline:3px solid var(--gold);background:#ffe0a2}
+.actions{display:flex;gap:8px;margin-top:10px}.action{flex:1;padding:12px;border-radius:12px;font-weight:900;background:var(--gold);color:#34231a}.action.secondary{background:#eee0cb}
+.progress{height:7px;background:#59473c;border-radius:9px;overflow:hidden;margin-top:9px}.progress span{display:block;height:100%;background:#74d18b;width:0%;transition:width .2s}
+.toast{position:absolute;top:19%;left:50%;transform:translateX(-50%);background:#2d2823;color:white;padding:10px 15px;border-radius:12px;z-index:8;opacity:0;transition:opacity .2s;pointer-events:none;font-weight:800}
+.overlay{position:absolute;inset:0;background:#201b19eF;display:flex;align-items:center;justify-content:center;padding:22px;z-index:10}
+.panel{width:min(440px,100%);background:#fff1d9;color:#35271f;border-radius:24px;padding:24px;text-align:center;box-shadow:0 15px 50px #0008}
+.panel h1{margin:0;color:#c83f31;font-size:clamp(27px,7vw,40px);line-height:1.05}.panel p{line-height:1.5}.bigbtn{width:100%;padding:15px;border-radius:14px;background:#e84b3c;color:white;font-weight:950;font-size:17px;margin-top:8px}
+#result{font-weight:900;color:#4c8d55;margin:8px}
+@media(min-width:700px){.counter-ui{left:50%;right:auto;width:min(700px,90%);transform:translateX(-50%);bottom:12px;border-radius:18px}.cashier{bottom:33%}}
+</style></head>
+<body>
+<div id="game">
+ <header class="top"><div class="brand">🍔 BENNY'S BURGERS</div><div class="stats"><span>🪙 <b id="coins">0</b></span><span>⭐ <b id="xp">0</b></span><span>❤️ <b id="lives">3</b></span><button id="shopOpen" style="background:#ffbd4a;color:#34231a;padding:6px 10px;border-radius:9px;font-weight:900">🛒 Obchod</button></div></header>
+ <main class="scene">
+  <div class="backwall"><div class="window"></div><div class="menu-board">BENNY'S MENU<small>BURGERS • FRIES • FUN</small><small>Fresh every day!</small></div></div>
+  <div class="orderbubble" id="order">Vítej v Benny's!<br><small>Stiskni START a obsluž prvního zákazníka.</small></div>
+  <div class="cashier" id="customer">🐻</div>
+  <div class="counter"></div><div class="countertop"></div>
+  <div class="toast" id="toast"></div>
+  <section class="counter-ui">
+   <div style="text-align:center;font-size:12px;font-weight:800;margin-bottom:8px;color:#ffe2b4">KLEPNI NA SUROVINY A SESTAV OBJEDNÁVKU</div>
+   <div class="row" id="ingredients">
+    <button class="food" data-item="🍞">🍞 Bulka</button><button class="food" data-item="🥩">🥩 Maso</button><button class="food" data-item="🧀">🧀 Sýr</button><button class="food" data-item="🥬">🥬 Salát</button><button class="food" data-item="🍅">🍅 Rajče</button>
+   </div>
+   <div class="row" id="extraIngredients" style="margin-top:7px"></div>
+   <div class="actions"><button class="action secondary" id="clear">↶ Smazat</button><button class="action" id="serve">PODAT OBJEDNÁVKU ➜</button></div>
+   <div class="progress"><span id="bar"></span></div>
+  </section>
+ </main>
+ <div class="overlay" id="start">
+  <div class="panel"><div style="font-size:55px">🐻🍔</div><h1>BENNY'S<br>BURGERS</h1><p>První směna právě začíná! Zákazníci ti budou objednávat burgery. Klepáním na suroviny je sestav přesně podle objednávky a potom je podej.</p><p><b>Ovládání:</b> dotykem nebo myší</p><button class="bigbtn" id="startBtn">ZAČÍT SMĚNU</button></div>
+ </div>
+ <div class="overlay" id="end" style="display:none"><div class="panel"><div style="font-size:48px">🍟</div><h1>KONEC SMĚNY</h1><p id="summary"></p><button class="bigbtn" id="again">HRÁT ZNOVU</button></div></div>
+ <div class="overlay" id="shop" style="display:none;z-index:12"><div class="panel" style="max-height:88%;overflow:auto;text-align:left">
+  <div style="display:flex;justify-content:space-between;align-items:center"><h1 style="font-size:30px">🛒 OBCHOD</h1><button id="shopClose" style="background:#ead8bd;border-radius:10px;padding:8px 12px;font-weight:900">✕</button></div>
+  <p style="margin:6px 0 12px">Kupuj zásoby a odemykej nové suroviny pro své burgery.</p>
+  <div style="background:#f4dfbd;padding:10px;border-radius:12px;font-weight:900;margin-bottom:12px">🪙 Tvoje mince: <span id="shopCoins">0</span></div>
+  <h3 style="margin:8px 0">📦 Doplnění zásob</h3><div id="stockList" style="display:grid;gap:8px"></div>
+  <h3 style="margin:16px 0 8px">✨ Nové suroviny</h3><div id="unlockList" style="display:grid;gap:8px"></div>
+  <h3 style="margin:16px 0 8px">🎒 Tvoje zásoby</h3><div id="inventoryList" style="font-size:14px;line-height:1.8"></div>
+ </div></div>
+</div>
+<script>
+const recipes=[
+ {name:"Benny Classic",items:["🍞","🥩","🧀","🥬","🍞"]},
+ {name:"Cheese Boom",items:["🍞","🥩","🧀","🧀","🍞"]},
+ {name:"Garden Burger",items:["🍞","🥬","🍅","🧀","🍞"]},
+ {name:"Double Benny",items:["🍞","🥩","🧀","🥩","🍞"]},
+ {name:"BBQ Deluxe",items:["🍞","🥩","🧀","🥓","🍅","🍞"],needs:["🥓"]}
+];
+const catalog=[
+ {id:"bun",emoji:"🍞",name:"Burgerová bulka",price:8,stock:8,unlock:true},
+ {id:"meat",emoji:"🥩",name:"Hovězí maso",price:12,stock:8,unlock:true},
+ {id:"cheese",emoji:"🧀",name:"Plátkový sýr",price:7,stock:8,unlock:true},
+ {id:"lettuce",emoji:"🥬",name:"Salát",price:5,stock:8,unlock:true},
+ {id:"tomato",emoji:"🍅",name:"Rajče",price:5,stock:8,unlock:true},
+ {id:"bacon",emoji:"🥓",name:"Křupavá slanina",price:45,stock:0,unlock:false,unlockPrice:90},
+ {id:"onion",emoji:"🧅",name:"Červená cibule",price:25,stock:0,unlock:false,unlockPrice:65},
+ {id:"pickle",emoji:"🥒",name:"Nakládaná okurka",price:30,stock:0,unlock:false,unlockPrice:75},
+ {id:"mushroom",emoji:"🍄",name:"Žampiony",price:40,stock:0,unlock:false,unlockPrice:100},
+ {id:"chili",emoji:"🌶️",name:"Pálivá paprika",price:50,stock:0,unlock:false,unlockPrice:120}
+];
+let coins=100,xp=0,lives=3,served=0,current=null,stack=[],running=false,round=0;
+const $=id=>document.getElementById(id);
+const inventory=Object.fromEntries(catalog.map(x=>[x.id,x.stock]));
+const unlocked=new Set(catalog.filter(x=>x.unlock).map(x=>x.id));
+const emojiToId=Object.fromEntries(catalog.map(x=>[x.emoji,x.id]));
+function update(){
+ $("coins").textContent=coins;$("xp").textContent=xp;$("lives").textContent=lives;
+ $("bar").style.width=(stack.length/(current?.items.length||5)*100)+"%";
+}
+function toast(t){$("toast").textContent=t;$("toast").style.opacity=1;setTimeout(()=>$("toast").style.opacity=0,1100)}
+function renderShop(){
+ $("shopCoins").textContent=coins;
+ $("extraIngredients").innerHTML=catalog.filter(x=>unlocked.has(x.id)&&!["bun","meat","cheese","lettuce","tomato"].includes(x.id)).map(x=>`<button class="food" data-item="${x.emoji}">${x.emoji} ${x.name}</button>`).join("");
+ $("extraIngredients").querySelectorAll(".food").forEach(b=>b.onclick=()=>selectIngredient(b));
+
+ $("stockList").innerHTML=catalog.filter(x=>unlocked.has(x.id)).map(x=>`
+ <div style="display:flex;align-items:center;gap:8px;background:#f4dfbd;padding:9px;border-radius:11px">
+  <div style="font-size:25px">${x.emoji}</div><div style="flex:1"><b>${x.name}</b><div style="font-size:12px">Zásoba: ${inventory[x.id]} ks • ${x.price} 🪙 / ks</div></div>
+  <button onclick="buyStock('${x.id}',5)" style="background:#4e9b65;color:white;border-radius:9px;padding:9px;font-weight:900">+5</button>
+ </div>`).join("");
+ $("unlockList").innerHTML=catalog.filter(x=>!unlocked.has(x.id)).map(x=>`
+ <div style="display:flex;align-items:center;gap:8px;background:#f4dfbd;padding:9px;border-radius:11px">
+  <div style="font-size:25px">${x.emoji}</div><div style="flex:1"><b>${x.name}</b><div style="font-size:12px">Odemkneš nové recepty • ${x.unlockPrice} 🪙</div></div>
+  <button onclick="unlockItem('${x.id}')" style="background:#e84b3c;color:white;border-radius:9px;padding:9px;font-weight:900">Odemknout</button>
+ </div>`).join("");
+ $("inventoryList").innerHTML=catalog.filter(x=>unlocked.has(x.id)).map(x=>`${x.emoji} ${x.name}: <b>${inventory[x.id]} ks</b>`).join("<br>");
+}
+window.buyStock=(id,qty)=>{
+ const x=catalog.find(i=>i.id===id),cost=x.price*qty;
+ if(coins<cost){toast("Nemáš dost mincí!");return}
+ coins-=cost;inventory[id]+=qty;update();renderShop();toast(`Nakoupeno ${qty}× ${x.name}`);
+};
+window.unlockItem=id=>{
+ const x=catalog.find(i=>i.id===id);
+ if(coins<x.unlockPrice){toast("Nemáš dost mincí!");return}
+ coins-=x.unlockPrice;unlocked.add(id);inventory[id]=5;update();renderShop();toast(`${x.name} odemčeno!`);
+};
+$("shopOpen").onclick=()=>{renderShop();$("shop").style.display="flex"};
+$("shopClose").onclick=()=>$("shop").style.display="none";
+function nextOrder(){
+ if(lives<=0){finish();return}
+ const available=recipes.filter(r=>!r.needs||r.needs.every(id=>unlocked.has(emojiToId[id])));
+ current=available[Math.floor(Math.random()*available.length)];
+ stack=[];$("customer").textContent=["🐻","🧑‍🍳","👩","🧔","👨‍🦰"][served%5];
+ $("order").innerHTML="Objednávka: <b>"+current.name+"</b><br><small>"+current.items.join(" ")+"</small>";
+ document.querySelectorAll(".food").forEach(b=>b.classList.remove("selected"));update();
+}
+$("startBtn").onclick=()=>{$("start").style.display="none";running=true;nextOrder()};
+function selectIngredient(b){
+ if(!running||!current)return;
+ const emoji=b.dataset.item,id=emojiToId[emoji];
+ if(!id||!unlocked.has(id)){toast("Tuhle surovinu ještě nemáš odemčenou.");return}
+ if(inventory[id]<=0){toast("Došla zásoba! Otevři obchod 🛒");return}
+ if(stack.length>=current.items.length){toast("Už je hotovo! Podej burger.");return}
+ inventory[id]--;stack.push(emoji);b.classList.add("selected");update();
+}
+document.querySelectorAll("#ingredients .food").forEach(b=>b.onclick=()=>selectIngredient(b));
+$("clear").onclick=()=>{
+ if(!running)return;
+ stack.forEach(emoji=>{const id=emojiToId[emoji];if(id)inventory[id]++});
+ stack=[];document.querySelectorAll(".food").forEach(b=>b.classList.remove("selected"));update();toast("Suroviny vráceny do zásob.");
+};
+$("serve").onclick=()=>{
+ if(!running||!current)return;
+ const ok=stack.length===current.items.length&&stack.every((x,i)=>x===current.items[i]);
+ if(ok){coins+=25+Math.floor(served/3)*5;xp+=10;served++;toast("Výborně! + mince a XP ⭐");}
+ else {stack.forEach(emoji=>{const id=emojiToId[emoji];if(id)inventory[id]++});lives--;toast("Špatná objednávka! Suroviny vráceny.");}
+ stack=[];document.querySelectorAll(".food").forEach(b=>b.classList.remove("selected"));update();
+ if(lives<=0){setTimeout(finish,650)}else{setTimeout(nextOrder,650)}
+};
+function finish(){running=false;$("summary").textContent=`Obsloužil/a jsi ${served} zákazníků. Získal/a jsi ${coins} mincí a ${xp} XP.`;$("end").style.display="flex";}
+$("again").onclick=()=>{lives=3;served=0;$("end").style.display="none";running=true;update();nextOrder()};
+</script></body></html>
